@@ -1,32 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-
+<!-- 机器人定义文件，使用Xacro宏语言 -->
 <robot name="rm_gimbal"
   xmlns:xacro="http://ros.org/wiki/xacro">
 
+  <!-- 定义宏参数，用于调整摄像头的位置和姿态 -->
   <xacro:arg name="xyz" default="0.10 0 0.05" />
   <xacro:arg name="rpy" default="0 0 0" />
 
+  <!-- 基座链接，代表机器人的起点 -->
   <link name="odom" />
 
+  <!-- 云台链接，用于安装和旋转摄像头 -->
   <link name="gimbal_link" />
 
-  <joint name="gimbal_joint" type="floating">
+  <!-- 云台关节，实现全方位旋转 -->
+  <joint name="gimbal_joint" type="fixed">   
+  <!-- 要是没有下位机，就先把urdf里的 floating 关节改成 fixed 用着先，
+  以后有下位机了记得改回去 -->
     <parent link="odom" />
     <child link="gimbal_link" />
   </joint>
 
+  <!-- 摄像头链接，实际安装摄像头的位置 -->
   <link name="camera_link" />
 
+  <!-- 摄像头固定关节，用于调整摄像头的相对位置和姿态 -->
   <joint name="camera_joint" type="fixed">
+    <!-- 使用宏参数定义关节原点的位置和姿态 -->
     <origin xyz="$(arg xyz)" rpy="$(arg rpy)" />
     <parent link="gimbal_link" />
     <child link="camera_link" />
+    <!-- 禁止绕任意轴旋转，保持摄像头稳定 -->
     <axis xyz="0 0 0" />
   </joint>
 
+  <!-- 摄像头光学帧，用于描述摄像头的光学参考系 -->
   <link name="camera_optical_frame" />
 
+  <!-- 摄像头光学关节，用于将摄像头光学参考系与机械参考系关联 -->
   <joint name="camera_optical_joint" type="fixed">
+    <!-- 定义初始姿态，使摄像头光学参考系与机械参考系对齐 -->
     <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}" />
     <parent link="camera_link" />
     <child link="camera_optical_frame" />
